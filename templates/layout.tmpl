@@ -1,0 +1,131 @@
+{{ define "layout" }}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="cache-control" content="no-cache">
+    <title>Alex Dashboard</title>
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/dashboard.css" rel="stylesheet">
+    <script type="text/javascript" src="/static/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.template.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/static/js/dygraph.min.js"></script>
+    <script type="text/javascript" src="/static/js/cookie.js"></script>
+  {{ if .ShowLayout }}
+  <style>
+    body {
+        padding-top: 50px;
+    }
+  </style>
+  {{ end }}
+  </head>
+  <body>
+    {{ if .ShowLayout }}
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="">Alex Benchmark</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="javascript:void(0)" id="open_system_board">System</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div class="container-fluid">
+      <div class="row">
+       <div class="col-sm-3 col-md-2 sidebar">
+          <ul class="nav nav-sidebar">
+            <li><a href="/boom/">Boom Benchmark</a></li>
+            <li><a href="/boom/logs">Boom Logs</a></li>
+            <li><a href="/vegeta/">Vegeta Benchmark</a></li>
+            <li><a href="/vegeta/logs">Vegeta Logs</a></li>
+          </ul>
+        </div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <div class="panel panel-warning" id="system_board" style="display:none">
+                <div class="panel-heading">
+                Machine Status
+                </div>
+                <div class="panel-body" id="system_status">
+                </div>
+            </div>
+            {{ yield }}
+        </div> 
+      </div>
+    </div>
+    {{ else }}
+            <div class="panel panel-warning" id="system_board" style="display:none">
+                <div class="panel-heading">
+                Machine Status
+                </div>
+                <div class="panel-body" id="system_status">
+                </div>
+            </div>
+            {{ yield }}
+    {{ end }}
+  </body>
+</html>
+<script type="text/html" id="system-tmpl">
+<span class="label label-primary">Cpu Load</span>
+<span class="label label-success" data-content-text="load:1"></span>
+<span class="label label-success" data-content-text="load:5"></span>
+<span class="label label-success" data-content-text="load:15"></span><br/><br/>
+<span class="label label-primary">Memory</span>
+<span class="label label-success" data-content-text="mem:total"></span>
+<span class="label label-success" data-content-text="mem:free"></span>
+<span class="label label-success" data-content-text="mem:buffers"></span>
+<span class="label label-success" data-content-text="mem:cached"></span>
+<span class="label label-success" data-content-text="mem:wired"></span>
+<span class="label label-success" data-content-text="mem:used"></span><br/><br/>
+</script>
+<script>
+$(document).ready(function() {
+    var sid = 0;
+    $("#open_system_board").click(function() {
+        if(getOpenStatus() == "open") {
+            hideSystemStatus();   
+            saveOpenStatus("hide");
+        } else {
+            showSystemStatus();
+            saveOpenStatus("open");
+        }
+    });
+    function showSystemStatus() {
+        $("#system_board").show();
+        openSystemStatus();
+        sid = setInterval(function() {
+            openSystemStatus();
+        }, 2000);
+    }
+    function hideSystemStatus() {
+        $("#system_board").hide();
+        if(sid > 0) {
+            clearInterval(sid);
+        }
+        sid = 0;
+    }
+    function openSystemStatus() {
+        $.get("/api/system", function(data) {
+             $("#system_status").loadTemplate("#system-tmpl", data);
+        }); 
+    }
+    function saveOpenStatus(st) {
+        Cookies.set("system_status", st);
+    }
+    function getOpenStatus() {
+        return Cookies.get("system_status");
+    }
+    if(getOpenStatus() == "open") {
+        showSystemStatus();   
+    } else {
+        hideSystemStatus();
+    }
+});
+</script>
+{{ end }}

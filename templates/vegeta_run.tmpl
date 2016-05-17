@@ -1,0 +1,102 @@
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        Vegeta Run Configuration
+    </div>
+    <div class="panel-body">
+        {{ with .form }}
+        <form class="form-horizontal" id="run_form" method="POST" action="/vegeta/run">
+          <input type="hidden" name="job_id" value="{{ .Job.Id.Hex }}"/>
+          <div class="form-group">
+            <label for="name" class="col-sm-2 control-label">Name</label>
+            <div class="col-sm-10">
+                <input type="text" readonly value="{{ .Job.Name }}" class="form-control">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="url" class="col-sm-2 control-label">URL</label>
+            <div class="col-sm-10">
+                <input type="text" readonly value="{{ .Job.Url }}" class="form-control">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="workers" class="col-sm-2 control-label">Initial Concurrency</label>
+            <div class="col-sm-10">
+                <input type="number" min=1 name="workers" value="{{ .Job.Workers }}" required class="form-control">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="redirects" class="col-sm-2 control-label">Max Redirects</label>
+            <div class="col-sm-10">
+                <input type="number" min=-1 name="redirects" value="{{ .Job.Redirects }}" required class="form-control">
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="keepalive" {{ if .Job.Keepalive }}checked{{ end }}>Keepalive</label>
+                </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="timeout" class="col-sm-2 control-label">Timeout(s)</label>
+            <div class="col-sm-10">
+                <input type="number" min=1 name="timeout" value="{{ .Job.Timeout }}" required class="form-control">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label">QPS Settings</label>
+            <div class="col-sm-10">
+                <table class="table table-bordered table-hover" id="rates_table">
+                    <tbody>
+                        {{ range .Job.Periods }}
+                        <tr>
+                            <td>
+                            <input type="number" min=1 name='rate' value="{{ .Rate }}" required title="QPS" placeholder='100' class="form-control"/>
+                            </td>
+                            <td>
+                            <input type="number" min=1 name='duration' value="{{ .Duration }}" required title="Time of Duration(s)" placeholder='60' class="form-control"/>
+                            </td>
+                            <td class="text-center">
+                                <a data-op='add_row' class="btn btn-default"><span class="glyphicon glyphicon-plus"></span></a>
+                                <a data-op='delete_row' class="btn btn-default"><span class="glyphicon glyphicon-minus"></span></a>
+                            </td>
+                        </tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="comment" class="col-sm-2 control-label">Comment</label>
+            <div class="col-sm-10">
+                <input type="text" required name="comment" value="" class="form-control" placeholder="write something for backtracing">
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <a href="/vegeta/"class="btn btn-default">Cancel</a>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </div>
+        </form>
+    {{ end }}
+    </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function() {
+    $("#rates_table").delegate("a[data-op=add_row]", "click", function(){
+        var row = $(this).parent().parent();
+        var copy_row = row.clone();
+        copy_row.insertAfter(row);
+    });
+    $('#rates_table').delegate("a[data-op=delete_row]", "click", function(){
+        var rows = $('#rates_table tbody tr');
+        if(rows.length > 1) {
+            $(this).parent().parent().remove();
+        }
+    }); 
+    $('#run_form').submit(function() {
+    });
+});
+</script>

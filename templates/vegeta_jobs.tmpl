@@ -1,0 +1,150 @@
+<div class="panel panel-primary">
+    <div class="panel-heading">Vegeta Benchmarks [Stabilize Qps]</div>
+    <div class="panel-body">
+        <form class="form-inline" method="GET" id="search-form">
+          <div class="form-group">
+            <label for="team" class="control-label">Team</label>
+            <select name="team" class="form-control">
+                {{ range .teams }}
+                <option value="{{ .Team }}" {{ if .Selected }}selected{{ end }}>{{ .Team }}</option>
+                {{ end }}
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="project" class="control-label">Project Name</label>
+            <input type="text" name="project" value="{{ .project }}" class="form-control" placeholder="Project Name">
+          </div>
+          <div class="form-group">
+            <label for="url" class="control-label">URL Prefix</label>
+            <input type="text" name="url" value="{{ .url }}" class="form-control" placeholder="URL Prefix">
+          </div>
+          <button type="submit" class="btn btn-primary">Query</button>
+          <a href="" class="btn btn-primary">Refresh Page</a>
+          <button type="button" data-toggle="modal" data-target="#newJob" class="btn btn-success pull-right">New Job</button>
+        </form>
+        <br/>
+        <table class="table table-striped">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Team</th>
+                <th>Project</th>
+                <th>URL</th>
+                <th>State</th>
+                <th>Current Qps</th>
+                <th>Run Date</th>
+                <th>Operations</th>
+            </tr>
+            {{ range .jobs }}
+            <tr id="job-{{.Id.Hex}}" data-id="{{ .Id.Hex }}" data-running="{{ .IsRunning }}">
+                <td>
+                    <a class="btn btn-link btn-sm" data-container="body" data-toggle="popover" data-placement="top" data-content="{{ .Id.Hex }}"/>
+                        <span class="glyphicon glyphicon-asterisk"></span>
+                    </a>
+                </td>
+                <td>{{ .Name }}</td>
+                <td><span class="label label-primary">{{ .Team }}</span></td>
+                <td><span class="label label-info">{{ .Project }}</span></td>
+                <td>{{ .Url }}</td>
+                {{ if .IsRunning }}
+                <td id="state-{{.Id.Hex}}"><span class="label label-success">Running</td>
+                {{ else }}
+                <td id="state-{{.Id.Hex}}"><span class="label label-default">Quiet</td>
+                {{ end }}
+                <td id="rate-{{.Id.Hex}}">
+                <span class="badge">{{ .CurrentRate }}</span>
+                </td>
+                <td>{{ .LastRunTs|strftime}}</td>
+                <td>
+                    <a class="btn btn-link" href="/vegeta/edit?job_id={{ .Id.Hex }}"><span class="glyphicon glyphicon-pencil"></span></a>
+                    <a class="btn btn-link" href="/vegeta/run?job_id={{ .Id.Hex }}"><span class="glyphicon glyphicon-play"></span></a>
+                    <a href="javascript:void(0)"
+                        class="btn btn-link btn-sm"
+                        data-toggle="popover"
+                        data-html="true"
+                        data-placement="left"
+                        data-content="<a class='btn btn-danger' href='/vegeta/stop?job_id={{ .Id.Hex }}'>Stop Now</a>"><span class="glyphicon glyphicon-pause"></span></a>
+                    <a class="btn btn-link" href="/vegeta/logs?job_id={{ .Id.Hex }}"><span class="glyphicon glyphicon-stats"></span></a>
+                    <a href="javascript:void(0)"
+                        class="btn btn-link btn-sm"
+                        data-toggle="popover"
+                        data-html="true"
+                        data-placement="left"
+                        data-content="<a class='btn btn-danger' href='/vegeta/delete?job_id={{ .Id.Hex }}'>Delete Now</a>"><span class="glyphicon glyphicon-remove"></span></a>
+                </td>
+            </tr>
+            {{ end }}
+        </table>
+        {{ template "pager" .pager }}
+        <div class="modal fade" id="newJob">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</span></button>
+                <h4 class="modal-title">New Job</h4>
+              </div>
+              <div class="modal-body">
+                <form class="form-horizontal" method="POST" action="/vegeta/create" id="create-form">
+                  <div class="form-group">
+                    <label for="name" class="col-sm-2 control-label">Job Name</label>
+                    <div class="col-sm-10">
+                      <input type="text" name="name" class="form-control" required placeholder="Job Name">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="project" class="col-sm-2 control-label">Project Name</label>
+                    <div class="col-sm-10">
+                      <input type="text" name="project" class="form-control" required placeholder="Project Name">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="team" class="col-sm-2 control-label">Team</label>
+                    <div class="col-sm-10">
+                      <select class="form-control" name="team">
+                        {{ range .teams }}
+                        <option value="{{ .Team }}" {{ if .Selected }}selected{{ end }}>{{ .Team }}</option>
+                        {{ end }}
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                      <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                      <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                  </div>
+                </form>      
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('a[data-toggle=popover]').popover();
+        $('#create-form').submit(function() {
+            var team_el = $('#create-form select[name=team]');
+            if(team_el.val() == "") {
+                team_el.parent().addClass("has-error");
+                return false;    
+            } else {
+                team_el.parent().removeClass("has-error");
+            }
+        });
+        setInterval(function() {
+            $('tr[data-running=true]').each(function(_, el) {
+                var jobId = $(el).data("id");
+                $.get("/api/vegeta/state?job_id=" + jobId, function(data) {
+                    if(data.is_running) {
+                        $('#state-' + jobId).html('<span class="label label-success">Running</span>');
+                    } else {
+                        $('#state-' + jobId).html('<span class="label label-default">Quiet</span>');
+                        $('#job-' + jobId).removeAttr("data-running");
+                    }
+                    $('#rate-' + jobId).html('<span class="badge">'+ data.current_rate +'</span>');
+                });
+            });
+        }, 2000);
+    });
+</script>

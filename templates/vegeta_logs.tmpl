@@ -1,0 +1,48 @@
+<div class="panel panel-primary">
+    <div class="panel-heading">Vegeta Logs</div>
+    <div class="panel-body">
+        <form class="form-inline" method="GET" id="search-form">
+          <div class="form-group">
+            <label for="job_id" class="control-label">Job ID</label>
+            <input type="text" name="job_id" value="{{ .jobId }}" class="form-control" placeholder="Job ID">
+          </div>
+          <button type="submit" class="btn btn-primary">Query</button>
+          <a href="" class="btn btn-primary">Refresh Page</a>
+        </form>
+        <br/>
+        <table class="table table-striped">
+            <tr>
+                <th>Job ID</th>
+                <th>Job Name</th>
+                <th>Job Url</th>
+                <th>Host:Port</th>
+                <th>Comment</th>
+                <th>State</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Operations</th>
+            </tr>
+            {{ range .logs }}
+            <tr>
+                <td><a class="btn btn-link" href="/vegeta/">{{ .JobId }}</a></td>
+                <td>{{ .JobName }}</td>
+                <td>{{ .JobUrl }}</td>
+                <td>{{if .JobDetail}}{{ range .JobDetail.Hosts }}{{.}}<br/>{{end}}{{end}}</td>
+                <td>{{ .Comment }}</td>
+                {{ if .IsRunning }}
+                <td><span class="label label-success">Running</td>
+                {{ else }}
+                <td><span class="label label-default">Finished</td>
+                {{ end }}
+                <td>{{ .StartTs|strftime }}</td>
+                <td>{{ .EndTs|strftime}}</td>
+                <td>
+                    <a class="btn btn-link" href="/vegeta/metrics?log_id={{ .Id.Hex }}"><span class="glyphicon glyphicon-stats"></span></a>
+                    <a class="btn btn-link" href="/vegeta/log/delete?log_id={{ .Id.Hex }}"><span class="glyphicon glyphicon-remove"></span></a>
+                </td>
+            </tr>
+            {{ end }}
+        </table>
+        {{ template "pager" .pager }}
+    </div>
+</div>

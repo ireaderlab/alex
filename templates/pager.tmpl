@@ -1,0 +1,27 @@
+{{ define "pager" }}
+{{ if .IsVisible }}
+<nav class="text-center">
+    <ul class="pagination pagination-lg">
+        {{ if .IsFirstVisible }}
+        {{ with .FirstItem }}
+        <li  class="{{.Class}}">
+            <a href="{{.Url}}">{{.Label}}</a>
+        </li>
+        {{ end }}
+        {{ end }}
+        {{ range .Pages }}
+        <li  class="{{.Class}}">
+            <a href="{{.Url}}">{{.Label}}</a>
+        </li>
+        {{ end }}
+        {{ if .IsEndVisible }}
+        {{ with .EndItem }}
+        <li  class="{{.Class}}">
+            <a href="{{.Url}}">{{.Label}}</a>
+        </li>
+        {{ end }}
+        {{ end }}
+    </ul>
+</nav>
+{{ end }}
+{{ end }}

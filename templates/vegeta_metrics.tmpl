@@ -1,0 +1,157 @@
+<div class="panel panel-default">
+    <div clas="panel-header">
+        <span class="label label-primary">Vegeta Benchmark Report</label>
+    </div>
+    <div class="panel-body">
+        <table class="table table-striped table-bordered">
+            <tbody>
+                <tr>
+                    <td>Job Id</td>
+                    <td><a class="btn btn-link" href="/vegeta/logs?job_id={{ .log.JobId }}">{{ .log.JobId }}</a></td>
+                </tr>
+                <tr>
+                    <td>Job Name</td>
+                    <td>{{ .log.JobName }}</td>
+                </tr>
+                <tr>
+                    <td>Url</td>
+                    <td>{{ .log.JobUrl }}</td>
+                </tr>
+                {{ if .log.JobDetail }}
+                <tr>
+                    <td>Team</td>
+                    <td>{{ .log.JobDetail.Team }}</td>
+                </tr>
+                <tr>
+                    <td>Project</td>
+                    <td>{{ .log.JobDetail.Project }}</td>
+                </tr>
+                <tr>
+                    <td>Method</td>
+                    <td>{{ .log.JobDetail.Method }}</td>
+                </tr>
+                <tr>
+                    <td>Host:Port List</td>
+                    <td>
+                        <ul class="list-group">
+                        {{ range .log.JobDetail.Hosts }} 
+                        <li class="list-group-item">{{ . }}</li>
+                        {{ end }}
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Comment</td>
+                    <td>{{ .log.Comment }}</td>
+                </tr>
+                {{ end }}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="panel panel-default">
+    <div class="panel-header">
+        <span class="label label-primary">Graphic Report</label>
+    </div>
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div id="graph_latency_rate"></div>
+            </div>
+            <div class="col-md-6">
+                <div id="graph_rate"></div>
+            </div>
+        </div>
+        <br/>
+        <div class="row">
+            <div class="col-md-6">
+                <div id="graph_latency"></div>
+            </div>
+            <div class="col-md-6">
+                <div id="graph_status_codes"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+new Dygraph(
+    document.getElementById("graph_rate"),
+    "Time,QPS/s\n" + {{ .log.RateMetrics }},
+    {"title": "Time-QPS", "xlabel": "Time(s)", "ylabel": "QPS(/s)"}
+);
+new Dygraph(
+    document.getElementById("graph_latency"),
+    "Time,Response Time\n" + {{ .log.LatencyMetrics }},
+    {"title": "Time-Response Time", "xlabel": "Time(s)", "ylabel": "Response Time(ms)"}
+);
+new Dygraph(
+    document.getElementById("graph_latency_rate"),
+    "QPS,Response Time/s\n" + {{ .log.RateLatencyMetrics }},
+    {"title": "QPS-Response Time", "xlabel": "QPS(/s)", "ylabel": "Response Time(ms)"}
+);
+new Dygraph(
+    document.getElementById("graph_status_codes"),
+    "Time{{ range $code, $flag := .log.StatusCodesList }},{{ $code }}{{ end }}\n" + {{ .log.StatusCodesMetrics }},
+    {"title": "Time-Status Counters", "xlabel": "Time(s)", "ylabel": "Counter"}
+);
+</script>
+<div class="panel panel-default">
+    <div clas="panel-header">
+        <span class="label label-primary">Text Report</label>
+    </div>
+    <div class="panel-body">
+        <table class="table table-striped">
+            <tr>
+                <th>QPS</th>
+                <th>Duration</th>
+                <th>Total Requests</th>
+                <th>Success Ratio</th>
+                <th>Response Time[Mean]</th>
+                <th>Response Time[P99]</th>
+                <th>Response Time[P95]</th>
+                <th>Return Statuses</th>
+                <th>Error Counters</th>
+            </tr>
+            {{ range .log.MetricsList }}
+            <tr>
+                <td>{{ .Rate }}/s</td>
+                <td>{{ .Duration }}s</td>
+                <td>{{ .Requests }}</td>
+                <td>{{ .Success  }}</td>
+                <td>{{ .Latencies.Mean }}</td>
+                <td>{{ .Latencies.P99 }}</td>
+                <td>{{ .Latencies.P95 }}</td>
+                <td>
+                   <a class="btn btn-lg btn-link"
+                      data-toggle="popover"
+                      data-title="http status code"
+                      data-html="true"
+                      data-content="{{ range $code, $count := .StatusCodes }}<span class='label label-info'>{{ $code }}</span>=><span class='label label-default'>{{ $count }}</span><br/>{{ end }}">
+                      <span class="glyphicon glyphicon-asterisk"></span>
+                   </a> 
+                </td>
+                <td>
+                    {{ if .Errors }}
+                    <a class="btn btn-lg btn-link"
+                       data-toggle="popover"
+                       data-title="error counters"
+                       data-html="true"
+                       data-content="{{ range .Errors }}<span class='label label-info'>{{ . }}</span><br/>{{ end }}">
+                       <span class="glyphicon glyphicon-remove-circle"></span>
+                    </a> 
+                    {{ else }}
+                    <a class="btn btn-lg btn-link" href="javascript:void(0)">
+                       <span class="glyphicon glyphicon-ok-circle"></span>
+                    </a>
+                    {{ end }}
+                </td>
+            </tr>
+            {{ end }}
+        </table>
+    </div>
+</div>
+<script type="text/javascript">
+$(function () {
+      $('[data-toggle="popover"]').popover()
+})
+</script>

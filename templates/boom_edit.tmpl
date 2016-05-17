@@ -1,0 +1,261 @@
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        Boom Job Edit
+    </div>
+    <div class="panel-body">
+        {{ with .form }}
+        <form class="form-horizontal" id="job_form" method="POST" action="/boom/edit">
+          <input type="hidden" name="job_id" value="{{ .Job.Id.Hex }}"/>
+          <div class="form-group">
+            <label for="name" class="col-sm-2 control-label">Name</label>
+            <div class="col-sm-10">
+                <input type="text" name="name" value="{{ .Job.Name }}" class="form-control" required placeholder="Job Name">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="team" class="col-sm-2 control-label">Team</label>
+            <div class="col-sm-10">
+                <select name="team" class="form-control">
+                    {{ range .Teams }}
+                    <option value="{{ .Team }}" {{ if .Selected }}selected{{ end }}>{{ .Team }}</option>
+                    {{ end }}
+                </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="project" class="col-sm-2 control-label">Project Name</label>
+            <div class="col-sm-10">
+                <input type="text" name="project" value="{{ .Job.Project }}" class="form-control" required placeholder="Project Name">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="url" class="col-sm-2 control-label">Relative Url</label>
+            <div class="col-sm-10">
+                <input type="text" title="Url must start with /" name="url" value="{{ .Job.Url }}" class="form-control" required placeholder="/">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="method" class="col-sm-2 control-label">Method</label>
+            <div class="col-sm-10">
+                <select name="method" class="form-control">
+                    {{ range .Methods }}
+                    <option value="{{ .Method }}" {{ if .Selected }}selected{{ end }}>{{ .Method }}</option>
+                    {{ end }}
+                </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label">Host:Port List</label>
+            <div class="col-sm-10">
+                <table class="table table-bordered table-hover" id="hosts_table">
+                    <tbody>
+                        {{ range .Job.Hosts }}
+                        <tr>
+                            <td>
+                            <input type="text" name='host' value="{{ . }}" required title="Host:Port" placeholder='localhost:8000' class="form-control"/>
+                            </td>
+                            <td class="text-center">
+                                <a data-op='add_row' class="btn btn-default"><span class="glyphicon glyphicon-plus"></span></a>
+                                <a data-op='delete_row' class="btn btn-default"><span class="glyphicon glyphicon-minus"></span></a>
+                            </td>
+                        </tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label">Parameters[json]</label>
+            <div class="col-sm-10">
+                <table class="table table-bordered table-hover" id="seeds_table">
+                    <thead>
+                        <tr>
+                            <th>Header Params</th>
+                            <th>Get Params</th>
+                            <th>Post Params</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{ range .Job.Seeds }}
+                        <tr>
+                            <td>
+                            <input type="text" name='header' value="{{ .Header|json }}" required title="Header Param Json" placeholder='Header Param Json' class="form-control"/>
+                            </td>
+                            <td>
+                            <input type="text" name='param' value="{{ .Param|json }}" required title="Url Param Json" placeholder='Url Param Json' class="form-control"/>
+                            </td>
+                            <td>
+                            <input type="text" name='data' value="{{ .Data|json }}" required title="Post Data Json" placeholder='Post Data Json' class="form-control"/>
+                            </td>
+                            <td class="text-center">
+                                <a data-op='add_row' class="btn btn-default"><span class="glyphicon glyphicon-plus"></span></a>
+                                <a data-op='delete_row' class="btn btn-default"><span class="glyphicon glyphicon-minus"></span></a>
+                            </td>
+                        </tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <a href="/boom/"class="btn btn-default">Cancel</a>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </div>
+        </form>
+    {{ end }}
+    </div>
+</div>
+<div class="panel panel-default">
+    <div class="panel-header">
+        <span class="label label-primary">JSON Transform Tool</label>
+    </div>
+    <div class="panel-body">
+        <div class="form-horizontal">
+          <div class="form-group">
+            <label class="col-sm-2 control-label">Query Parameters</label>
+            <div class="col-sm-10">
+                <input type="text" id="tools-params" value="" class="form-control" required placeholder="key1=value1&key2=value2">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="json" class="col-sm-2 control-label">json</label>
+            <div class="col-sm-10">
+                <input type="text" id="tools-json" value="" class="form-control">
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button type="button" id="btn-tools" class="btn btn-primary">Transform</button>
+            </div>
+          </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function() {
+    $("#btn-tools").click(function() {
+        var params = $('#tools-params').val();
+        if(params == "") {
+            return;
+        }    
+        var js = queryStringToJSON(params);
+        $('#tools-json').val(JSON.stringify(js));
+        $('#tools-json').focus().select();
+    });
+    function queryStringToJSON(queryString) {
+        if(queryString.indexOf('?') > -1){
+          queryString = queryString.split('?')[1];
+        }
+        var pairs = queryString.split('&');
+        var result = {};
+        pairs.forEach(function(pair) {
+          pair = pair.split('=');
+          result[pair[0]] = decodeURIComponent(pair[1] || '');
+        });
+        return result;
+    }
+    $("#seeds_table").delegate("a[data-op=add_row]", "click", function(){
+        var row = $(this).parent().parent();
+        var copy_row = row.clone();
+        copy_row.insertAfter(row);
+    });
+    $('#seeds_table').delegate("a[data-op=delete_row]", "click", function(){
+        var rows = $('#seeds_table tbody tr');
+        if(rows.length > 1) {
+            $(this).parent().parent().remove();
+        }
+    }); 
+    $('#hosts_table').delegate("a[data-op=add_row]", "click", function(){
+        var row = $(this).parent().parent();
+        var copy_row = row.clone();
+        copy_row.insertAfter(row);
+    }); 
+    $('#hosts_table').delegate("a[data-op=delete_row]", "click", function(){
+        var rows = $('#hosts_table tbody tr');
+        if(rows.length > 1) {
+            $(this).parent().parent().remove();
+        }
+    }); 
+    function validateJson(el) {
+        var params = $.trim(el.val());
+        var ok = true;
+        try {
+            JSON.parse(params);
+        }catch(e) {
+            ok = false;
+        }
+        if (params.charAt(0) != '{') {
+            ok = false;    
+        }
+        if(ok) {
+            el.parent().removeClass("has-error")
+        } else {
+            el.parent().addClass("has-error")
+        }
+        return ok;
+    }
+    function validateHost(el) {
+        var params = $.trim(el.val());
+        var ok = /^\w+(\.\w+){0,3}:\d{2,5}$/.test(params)
+        if(ok) {
+            el.parent().removeClass("has-error")
+        } else {
+            el.parent().addClass("has-error")
+        }
+        return ok;
+    }
+    $('#job_form').submit(function() {
+        var header_el = $('input[name=header]');
+        var result = true;
+        header_el.each(function (i, el) {
+             result = validateJson($(el));
+             return result;
+        });
+        if(!result) {
+            return false;    
+        }
+        var params_el = $('input[name=params]');
+        var result = true;
+        params_el.each(function (i, el) {
+             result = validateJson($(el));
+             return result;
+        });
+        if(!result) {
+            return false;    
+        }
+        var data_el = $('input[name=data]');
+        data_el.each(function (i, el) {
+             result = validateJson($(el));
+             return result;
+        });
+        if(!result) {
+            return false;    
+        }
+        var host_el = $('input[name=host]');
+        host_el.each(function (i, el) {
+             result = validateHost($(el));
+             return result;
+        });
+        if(!result) {
+            return false;    
+        }
+        var team_el = $('select[name=team]');
+        if(team_el.val() == "") {
+            team_el.parent().addClass("has-error")
+            return false;
+        } else {
+            team_el.parent().removeClass("has-error")
+        }
+        var url_el = $('input[name=url]');
+        if(url_el.val() == "" || url_el.val().charAt(0) != '/') {
+            url_el.parent().addClass("has-error")
+            return false;
+        } else {
+            url_el.parent().removeClass("has-error")
+        }
+    });
+});
+</script>
