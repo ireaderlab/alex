@@ -1,1 +1,1 @@
-{"BindAddr": "localhost:8000", "MongoUrl": "mongodb://localhost:27017/alex", "Teams": ["python", "java", "php", "go"], "ShowLayout": false}
+{"BindAddr": "localhost:8000", "MongoUrl": "mongodb://localhost:27017/alex", "Teams": ["python", "java", "php", "go"], "ShowLayout": true}
