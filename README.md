@@ -73,7 +73,7 @@ References
 1. wonderful vegeta https://github.com/tsenart/vegeta
 2. straight-forward boom https://github.com/rakyll/boom
 
-ScreenShots
+Screenshots
 -----------------------------
 ![Randomize Host:ports](screenshot/multiple_servers.png)
 ![Randomize Parameters](screenshot/multiple_parameters.png)
