@@ -75,6 +75,7 @@ References
 
 Screenshots
 -----------------------------
+![Benchmark List](screenshot/jobs.png)
 ![Randomize Host:ports](screenshot/multiple_servers.png)
 ![Randomize Parameters](screenshot/multiple_parameters.png)
 ![Step Settings](screenshot/step_settings.png)
