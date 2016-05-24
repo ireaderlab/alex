@@ -85,3 +85,6 @@ http://localhost:8000/
 -----------------------------
 Alex工具非常简单，近期也不会对Alex做出大的修改
 如果有小的bug或者建议，请告知我，我会第一时间修复。
+
+微信群
+![Weixin QR Code](screenshot/weixin.png)

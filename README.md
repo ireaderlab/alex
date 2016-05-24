@@ -85,3 +85,6 @@ Notice
 -----------------------------
 Keep it simple, I will not add more but complex functionalities to Alex.
 If there's any bugs or suggestions, please tell me, I will fix it ASAP.
+
+Weixin Group
+![Weixin QR Code](screenshot/weixin.png)
