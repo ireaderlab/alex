@@ -127,7 +127,7 @@ new Dygraph(
                        data-toggle="popover"
                        data-title="error counters"
                        data-html="true"
-                       data-content="{{ range .ErrorDist }}<span class='label label-info'>{{ . }}</span><br/>{{ end }}">
+                       data-content="{{ range $key, $value := .ErrorDist }}<span class='label label-info'>{{ $key }}</span>=><span class='label label-default'>{{ $value }}</span><br/>{{ end }}">
                        <span class="glyphicon glyphicon-remove-circle"></span>
                     </a> 
                     {{ else }}

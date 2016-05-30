@@ -447,6 +447,9 @@ func LogAttackBoomStart(job *BoomJob, comment string) *AttackBoomLog {
 func LogAttackBoomEnd(lg *AttackBoomLog, metricsList []*Report) {
 	// Record job reports after job finished
 	var op = bson.M{"$set": bson.M{"metricslist": metricsList, "state": "End", "endts": time.Now().Unix()}}
+	for k, v := range metricsList[0].ErrorDist {
+		fmt.Printf("%#v, %#v\n", k, v)
+	}
 	err := G_MongoDB.C("boom_logs").UpdateId(lg.Id, op)
 	if err != nil {
 		log.Panic(err)

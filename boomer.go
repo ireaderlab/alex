@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -155,7 +156,7 @@ func (r *Report) finalize() {
 	for _, wresults := range r.results {
 		for _, res := range wresults {
 			if res.err != nil {
-				r.ErrorDist[res.err.Error()]++
+				r.ErrorDist[strings.Replace(res.err.Error(), ".", ":", -1)]++
 			} else {
 				r.latencies.Add(res.duration.Seconds())
 				r.avgTotal += res.duration.Seconds()
