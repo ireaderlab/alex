@@ -86,4 +86,4 @@ Notice
 Keep it simple, I will not add more but complex functionalities to Alex.
 If there's any bugs or suggestions, please tell me, I will fix it ASAP.
 
-![Weixin QR Code](screenshot/weixin.png)
+<img src="screenshot/weixin.png" width="320" title="QR"/ >
