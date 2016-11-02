@@ -34,9 +34,14 @@ func Json(value interface{}) string {
 
 func BodyBytes(data map[string]interface{}) []byte {
 	var buffer bytes.Buffer
+	i := 0
 	for k, v := range data {
-		var item = fmt.Sprintf("%s:%v", k, v)
+		var item = fmt.Sprintf("%s=%v", k, v)
 		buffer.WriteString(item)
+		if i < len(data)-1 {
+			buffer.WriteString("&")
+		}
+		i++
 	}
 	return buffer.Bytes()
 }
