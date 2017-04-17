@@ -1,11 +1,14 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/martini-contrib/render"
 	"github.com/shirou/gopsutil/load"
 	"github.com/shirou/gopsutil/mem"
 	"gopkg.in/mgo.v2/bson"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -52,6 +55,42 @@ func GetBoomJobState(req *http.Request, r render.Render) {
 	} else {
 		result["is_running"] = job.IsRunning()
 		result["current_concurrency"] = job.CurrentConcurrency
+	}
+	r.JSON(200, result)
+}
+
+func TestParam(req *http.Request, r render.Render) {
+	var host = req.FormValue("host")
+	var url = req.FormValue("url")
+	var header = req.FormValue("header")
+	var params = req.FormValue("param")
+	var data = req.FormValue("data")
+	var method = req.FormValue("method")
+	var headerMap map[string]interface{}
+	var paramMap map[string]interface{}
+	var dataMap map[string]interface{}
+	json.Unmarshal([]byte(header), &headerMap)
+	json.Unmarshal([]byte(params), &paramMap)
+	json.Unmarshal([]byte(data), &dataMap)
+	rq, _ := http.NewRequest(method, Urlcat(host, url, paramMap), bytes.NewReader(BodyBytes(dataMap)))
+	for k, vs := range headerMap {
+		rq.Header.Add(k, vs.(string))
+	}
+	if host := req.Header.Get("Host"); host != "" {
+		rq.Host = host
+	}
+	client := &http.Client{}
+	var result = map[string]interface{}{}
+	resp, err := client.Do(rq)
+	if err == nil {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			result["err"] = err.Error()
+		} else {
+			result["result"] = string(body)
+		}
+	} else {
+		result["err"] = err
 	}
 	r.JSON(200, result)
 }

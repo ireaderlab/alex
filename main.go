@@ -28,6 +28,7 @@ func main() {
 		r.Get("/system", GetSystemStatus)
 		r.Get("/vegeta/state", GetVegetaJobState)
 		r.Get("/boom/state", GetBoomJobState)
+		r.Post("/param/test", TestParam)
 	})
 	m.Group("/vegeta", func(r martini.Router) {
 		r.Get("/", GetVegetaJobs)

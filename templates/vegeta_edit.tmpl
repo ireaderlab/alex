@@ -90,6 +90,7 @@
                             </td>
                             <td class="text-center">
                                 <a data-op='add_row' class="btn btn-default"><span class="glyphicon glyphicon-plus"></span></a>
+                                <a data-op='test_row' class="btn btn-default"><span class="glyphicon glyphicon-play"></span></a>
                                 <a data-op='delete_row' class="btn btn-default"><span class="glyphicon glyphicon-minus"></span></a>
                             </td>
                         </tr>
@@ -106,6 +107,13 @@
           </div>
         </form>
     {{ end }}
+    </div>
+</div>
+<div class="panel panel-default">
+    <div class="panel-header">
+        <span class="label label-primary">Test Result</label>
+    </div>
+    <div class="panel-body" id="test_result">
     </div>
 </div>
 <div class="panel panel-default">
@@ -168,6 +176,31 @@ $(document).ready(function() {
             $(this).parent().parent().remove();
         }
     }); 
+    $('#seeds_table').delegate("a[data-op=test_row]", "click", function() {
+        var row = $(this).parent().parent();
+        var header = row.find("input[name=header]");
+        var param = row.find("input[name=param]");
+        var body = row.find("input[name=data]");
+        var method = $("#job_form").find("select[name=method]").val();
+        var host = $("#job_form").find("input[name=host]").val();
+        var url = $("#job_form").find("input[name=url]").val();
+        if(!validateJson(header) || !validateJson(param) || !validateJson(body)) {
+            return false;
+        }
+        if(host == "" || url == "" || method == "") {
+            return false;
+        }
+        $.post("/api/param/test", 
+            {"header": header.val(),
+             "param": param.val(),
+             "body": body.val(),
+             "method": method,
+             "url": url,
+             "host": host},
+            function(data) {
+                $("#test_result").html(JSON.stringify(data));
+            });
+    });
     $('#hosts_table').delegate("a[data-op=add_row]", "click", function(){
         var row = $(this).parent().parent();
         var copy_row = row.clone();
