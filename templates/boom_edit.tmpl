@@ -198,8 +198,8 @@ $(document).ready(function() {
              "url": url,
              "host": host},
             function(data) {
-                $("#test_result").html(JSON.stringify(data));
-            });
+                $("#test_result").JSONView(data)
+        });
     });
     $('#hosts_table').delegate("a[data-op=add_row]", "click", function(){
         var row = $(this).parent().parent();
