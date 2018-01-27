@@ -39,6 +39,7 @@ go get -u github.com/golang/dep/cmd/dep # install dep
 go get github.com/ireaderlab/alex # install alex
 
 cd $GOPATH/src/github.com/ireaderlab/alex
+dep ensure
 go build
 ./alex
 ./alex -c config.json
