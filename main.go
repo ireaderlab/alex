@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
+	"html/template"
+	"os"
+
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
-	"html/template"
 )
 
 func main() {
@@ -57,5 +60,7 @@ func main() {
 		r.Get("/metrics", GetBoomMetrics)
 	})
 	// Let's fly
-	m.RunOnAddr(G_AlexAddr)
+	os.Setenv("HOST", G_AlexHost)
+	os.Setenv("PORT", fmt.Sprintf("%d", G_AlexPort))
+	m.Run()
 }

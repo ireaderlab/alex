@@ -3,14 +3,18 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"gopkg.in/mgo.v2"
 	"log"
 	"os"
 	"runtime"
+	"strconv"
+	"strings"
+
+	"gopkg.in/mgo.v2"
 )
 
 // Web UI default Listen address
-var G_AlexAddr = "0.0.0.0:8000"
+var G_AlexHost = "0.0.0.0"
+var G_AlexPort = 8000
 
 // Job Storage Default Url
 var G_MongoUrl = "localhost:27017"
@@ -60,7 +64,12 @@ func LoadConfig() {
 		if err != nil {
 			log.Panic("config file not valid json")
 		}
-		G_AlexAddr = config.BindAddr
+		pairs := strings.Split(config.BindAddr, ":")
+		G_AlexHost = pairs[0]
+		G_AlexPort, err = strconv.Atoi(pairs[1])
+		if err != nil {
+			log.Panic("port must be int")
+		}
 		G_AlexTeams = config.Teams
 		G_MongoUrl = config.MongoUrl
 		G_ShowLayout = config.ShowLayout
