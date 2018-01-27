@@ -35,14 +35,10 @@ Alex Limitations
 install mongodb
 install golang  # 1.4+ is required
 
-go get github.com/go-martini/martini
-go get github.com/tsenart/vegeta
-go get gopkg.in/mgo.v2
-go get github.com/shirou/gopsutil
-# godep restore
+go get -u github.com/golang/dep/cmd/dep # install dep
+go get github.com/ireaderlab/alex # install alex
 
-git clone https://github.com/shellquery/alex.git
-cd alex
+cd $GOPATH/src/github.com/ireaderlab/alex
 go build
 ./alex
 ./alex -c config.json
