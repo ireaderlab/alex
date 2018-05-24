@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/martini-contrib/render"
-	vegeta "github.com/tsenart/vegeta/lib"
-	"gopkg.in/mgo.v2/bson"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/martini-contrib/render"
+	vegeta "github.com/tsenart/vegeta/lib"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type RatePeriod struct {
@@ -30,8 +31,9 @@ type VegetaJob struct {
 	// Http API Url
 	Url string
 	// Hosts Pool for randomize choice
-	Hosts  []string
-	Method string
+	Hosts     []string
+	Method    string
+	Jsonified bool // application/json
 	// Parameters Pool for randomize choice
 	Seeds     []RequestSeed
 	CreateTs  int64
@@ -103,6 +105,7 @@ func CreateVegetaJob(req *http.Request, r render.Render) {
 		Team:      team,
 		Hosts:     []string{"localhost:8000"},
 		Project:   project,
+		Jsonified: false,
 		Seeds:     []RequestSeed{RequestSeed{}},
 		CreateTs:  time.Now().Unix(),
 		LastRunTs: time.Now().Unix(),
@@ -153,6 +156,7 @@ func EditVegetaJob(req *http.Request, r render.Render) {
 	job.Project = req.FormValue("project")
 	job.Method = req.FormValue("method")
 	job.Url = req.FormValue("url")
+	job.Jsonified = req.FormValue("jsonified") != ""
 	var hosts []string
 	for _, host := range req.Form["host"] {
 		hosts = append(hosts, host)
@@ -161,6 +165,7 @@ func EditVegetaJob(req *http.Request, r render.Render) {
 	var headerSeeds = []map[string]interface{}{}
 	var paramSeeds = []map[string]interface{}{}
 	var dataSeeds = []map[string]interface{}{}
+	var jsonDataSeeds = []string{}
 	for _, header := range req.Form["header"] {
 		var seed map[string]interface{}
 		json.Unmarshal([]byte(header), &seed)
@@ -171,23 +176,35 @@ func EditVegetaJob(req *http.Request, r render.Render) {
 		json.Unmarshal([]byte(param), &seed)
 		paramSeeds = append(paramSeeds, seed)
 	}
-	for _, data := range req.Form["data"] {
-		var seed map[string]interface{}
-		json.Unmarshal([]byte(data), &seed)
-		dataSeeds = append(dataSeeds, seed)
+	if job.Jsonified {
+		for _, data := range req.Form["data"] {
+			jsonDataSeeds = append(jsonDataSeeds, data)
+		}
+	} else {
+		for _, data := range req.Form["data"] {
+			var seed map[string]interface{}
+			json.Unmarshal([]byte(data), &seed)
+			dataSeeds = append(dataSeeds, seed)
+		}
 	}
 	job.Seeds = make([]RequestSeed, len(headerSeeds))
 	for i := 0; i < len(headerSeeds); i++ {
-		job.Seeds[i] = RequestSeed{headerSeeds[i], paramSeeds[i], dataSeeds[i]}
+		job.Seeds[i] = RequestSeed{headerSeeds[i], paramSeeds[i], nil, ""}
+		if len(dataSeeds) > 0 {
+			job.Seeds[i].Data = dataSeeds[i]
+		} else {
+			job.Seeds[i].JsonData = jsonDataSeeds[i]
+		}
 	}
 	var changed = bson.M{
-		"name":    job.Name,
-		"team":    job.Team,
-		"project": job.Project,
-		"method":  job.Method,
-		"url":     job.Url,
-		"hosts":   job.Hosts,
-		"seeds":   job.Seeds,
+		"name":      job.Name,
+		"team":      job.Team,
+		"project":   job.Project,
+		"method":    job.Method,
+		"url":       job.Url,
+		"hosts":     job.Hosts,
+		"jsonified": job.Jsonified,
+		"seeds":     job.Seeds,
 	}
 	var op = bson.M{"$set": changed}
 	err = G_MongoDB.C("vegeta_jobs").UpdateId(job.Id, op)
@@ -504,10 +521,17 @@ func NewRandomVegetaTargeter(job *VegetaJob) vegeta.Targeter {
 			}
 			var param = job.Seeds[i].Param
 			var data = job.Seeds[i].Data
+			var jsonData = job.Seeds[i].JsonData
+			var body []byte
+			if job.Jsonified {
+				body = []byte(jsonData)
+			} else {
+				body = BodyBytes(data)
+			}
 			var target = vegeta.Target{
 				Method: job.Method,
 				URL:    Urlcat(host, job.Url, param),
-				Body:   BodyBytes(data),
+				Body:   body,
 				Header: header,
 			}
 			targets = append(targets, target)

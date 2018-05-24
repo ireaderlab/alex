@@ -2,9 +2,10 @@ package main
 
 type RequestSeed struct {
 	// Request Parameters
-	Header map[string]interface{}
-	Param  map[string]interface{}
-	Data   map[string]interface{}
+	Header   map[string]interface{}
+	Param    map[string]interface{}
+	Data     map[string]interface{}
+	JsonData string
 }
 
 type MethodSelector struct {

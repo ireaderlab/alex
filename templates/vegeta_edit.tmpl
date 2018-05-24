@@ -65,6 +65,14 @@
             </div>
           </div>
           <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="jsonified" {{ if .Job.Jsonified }}checked{{ end }}>JSON Body</label>
+                </div>
+            </div>
+          </div>
+          <div class="form-group">
             <label class="col-sm-2 control-label">Parameters[json]</label>
             <div class="col-sm-10">
                 <table class="table table-bordered table-hover" id="seeds_table">
@@ -77,7 +85,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {{ range .Job.Seeds }}
+                        {{ with $job := .Job }}
+                        {{ range $job.Seeds }}
                         <tr>
                             <td>
                             <input type="text" name='header' value="{{ .Header|json }}" required title="Header Param Json" placeholder='Header Param Json' class="form-control"/>
@@ -86,7 +95,11 @@
                             <input type="text" name='param' value="{{ .Param|json }}" required title="Url Param Json" placeholder='Url Param Json' class="form-control"/>
                             </td>
                             <td>
-                            <input type="text" name='data' value="{{ .Data|json }}" required title="Post Data Json" placeholder='Post Data Json' class="form-control"/>
+                            {{ if $job.Jsonified }}
+                                <input type="text" name='data' value="{{ .JsonData }}" required title="Post Data Json" placeholder='Post Data Json' class="form-control"/>
+                            {{ else }}
+                                <input type="text" name='data' value="{{ .Data|json }}" required title="Post Data Json" placeholder='Post Data Json' class="form-control"/>
+                            {{ end }}
                             </td>
                             <td class="text-center">
                                 <a data-op='add_row' class="btn btn-default"><span class="glyphicon glyphicon-plus"></span></a>
@@ -94,6 +107,7 @@
                                 <a data-op='delete_row' class="btn btn-default"><span class="glyphicon glyphicon-minus"></span></a>
                             </td>
                         </tr>
+                        {{ end }}
                         {{ end }}
                     </tbody>
                 </table>
