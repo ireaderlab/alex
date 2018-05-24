@@ -68,13 +68,13 @@ func TestParam(req *http.Request, r render.Render) {
 	var data = req.FormValue("data")
 	var method = req.FormValue("method")
 	var jsonified = req.FormValue("jsonified") == "true"
-	fmt.Println(jsonified)
 	var headerMap map[string]interface{}
 	var paramMap map[string]interface{}
 	var dataMap map[string]interface{}
 	var body []byte
 	json.Unmarshal([]byte(header), &headerMap)
 	json.Unmarshal([]byte(params), &paramMap)
+	fmt.Println(data)
 	if jsonified {
 		body = []byte(data)
 	} else {
