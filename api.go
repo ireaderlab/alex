@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+
 	"github.com/martini-contrib/render"
 	"github.com/shirou/gopsutil/load"
 	"github.com/shirou/gopsutil/mem"
 	"gopkg.in/mgo.v2/bson"
-	"io/ioutil"
-	"net/http"
 )
 
 func GetSystemStatus(req *http.Request, r render.Render) {
@@ -66,13 +67,21 @@ func TestParam(req *http.Request, r render.Render) {
 	var params = req.FormValue("param")
 	var data = req.FormValue("data")
 	var method = req.FormValue("method")
+	var jsonified = req.FormValue("jsonified") == "true"
+	fmt.Println(jsonified)
 	var headerMap map[string]interface{}
 	var paramMap map[string]interface{}
 	var dataMap map[string]interface{}
+	var body []byte
 	json.Unmarshal([]byte(header), &headerMap)
 	json.Unmarshal([]byte(params), &paramMap)
-	json.Unmarshal([]byte(data), &dataMap)
-	rq, _ := http.NewRequest(method, Urlcat(host, url, paramMap), bytes.NewReader(BodyBytes(dataMap)))
+	if jsonified {
+		body = []byte(data)
+	} else {
+		json.Unmarshal([]byte(data), &dataMap)
+		body = BodyBytes(dataMap)
+	}
+	rq, _ := http.NewRequest(method, Urlcat(host, url, paramMap), bytes.NewReader(body))
 	for k, vs := range headerMap {
 		rq.Header.Add(k, vs.(string))
 	}

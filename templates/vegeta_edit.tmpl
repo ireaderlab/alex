@@ -198,6 +198,8 @@ $(document).ready(function() {
         var method = $("#job_form").find("select[name=method]").val();
         var host = $("#job_form").find("input[name=host]").val();
         var url = $("#job_form").find("input[name=url]").val();
+        var jsonified = $("#job_form").find("input[name=jsonified]").is(":checked");
+		console.log(jsonified);
         if(!validateJson(header) || !validateJson(param) || !validateJson(body)) {
             return false;
         }
@@ -208,6 +210,7 @@ $(document).ready(function() {
             {"header": header.val(),
              "param": param.val(),
              "body": body.val(),
+			 "jsonified": jsonified,
              "method": method,
              "url": url,
              "host": host},
