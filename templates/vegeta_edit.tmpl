@@ -248,7 +248,7 @@ $(document).ready(function() {
     }
     function validateHost(el) {
         var params = $.trim(el.val());
-        var ok = /^\w+(\.\w+){0,3}:\d{2,5}$/.test(params)
+        var ok = /^\w+(\.\w+){0,}:\d{2,5}$/.test(params)
         if(ok) {
             el.parent().removeClass("has-error")
         } else {
